@@ -10,7 +10,7 @@ embedding_size = 40
 
 # dataset
 
-words = open('names.txt', 'r').read().splitlines()
+words = open('makemore/names.txt', 'r').read().splitlines()
 chars = sorted(list(set(''.join(words))))
 stoi = {s: i+1 for i, s in enumerate(chars)}
 stoi['.'] = 0
@@ -45,11 +45,12 @@ g = torch.Generator().manual_seed(2147483647)
 # Embedding
 C = torch.randn((27, embedding_size), generator=g)
 # embedding to hidden layer weights and biases
-w1 = torch.randn((embedding_size * block_size, hidden_size), generator=g)
-b1 = torch.randn(hidden_size, generator=g)
+w1 = torch.randn((embedding_size * block_size,
+                 hidden_size), generator=g) * 0.01
+b1 = torch.randn(hidden_size, generator=g) * 0.01
 # hidden to output layer weights and biases
-w2 = torch.randn((hidden_size, 27), generator=g)
-b2 = torch.randn(27, generator=g)
+w2 = torch.randn((hidden_size, 27), generator=g) * 0.1
+b2 = torch.randn(27, generator=g) * 0
 
 parameters = [C, w1, b1, w2, b2]
 
@@ -80,9 +81,10 @@ for i in range(400000):
         p.data += -lr * p.grad
 
     if i % 20_000 == 0:
-        print(f"Loss: {loss.item()}")
+        print(f"Loss {i}/400000: {loss.item()}")
 
 
+@torch.no_grad()  # we don't need gradients for this part
 def loss_against(X, Y):
     # we are using Xdev and Ydev for validation, therefore we will use the validation set for the validation loop.
     emb = C[X]
